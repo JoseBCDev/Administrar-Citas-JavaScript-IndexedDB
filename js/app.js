@@ -18,7 +18,7 @@ const heading = document.querySelector('#administra');
 
 
 let editando = false;
-
+let DB;
 
 window.onload = ()=>{
     eventListeners();
@@ -211,6 +211,24 @@ function nuevaCita(e) {
         // Añade la nueva cita
         administrarCitas.agregarCita({...citaObj});
 
+        //Creado transaccion en la DB citas y en modo lectura y escritura
+        let transacion = DB.transaction(['citas'],'readwrite');
+
+        
+        //Mensaje de error 
+        transacion.onerror = function(){
+            console.log('Error en la transacción');
+        }
+
+        //Selecionamos la tabla u objeto citas
+        const objectStore = transacion.objectStore('citas');
+        
+        //Agregamos al DBindexed la cita
+        objectStore.add(citaObj);
+        //Mensaje de completado
+        transacion.oncomplete = function(){
+            console.log('se realizo exitoso');
+        }
         // Mostrar mensaje de que todo esta bien...
         ui.imprimirAlerta('Se agregó correctamente')
     }
@@ -284,6 +302,7 @@ function crearDB()
     //Mensaje de Exito
     crearDB.onsuccess = function(){
         console.log('Se creo la DB');
+        DB = crearDB.result;
     }
 
     //Configuracion de la DB
