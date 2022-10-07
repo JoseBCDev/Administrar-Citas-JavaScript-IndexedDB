@@ -104,6 +104,8 @@ class UI {
        
         this.limpiarHTML();
 
+        this.textoHeading(citas);
+
         //Creamos una variable para q pueda leer los datos q estan en el objetoStore citas a traves de transacciones
         const objectStore = DB.transaction('citas').objectStore('citas');
         
@@ -158,6 +160,8 @@ class UI {
 
             // Añade un botón de editar...
             const btnEditar = document.createElement('button');
+
+            const cita = cursor.value;
             btnEditar.onclick = () => cargarEdicion(cita);
 
             btnEditar.classList.add('btn', 'btn-info');
@@ -213,13 +217,27 @@ function nuevaCita(e) {
 
     if(editando) {
         // Estamos editando
+
         administrarCitas.editarCita( {...citaObj} );
 
-        ui.imprimirAlerta('Guardado Correctamente');
+        const transacion = DB.transaction(['citas'],'readwrite');
 
-        formulario.querySelector('button[type="submit"]').textContent = 'Crear Cita';
+        const objectStore = transacion.objectStore('citas');
 
-        editando = false;
+        objectStore.put(citaObj);
+
+        transacion.oncomplete = () =>{
+        
+            ui.imprimirAlerta('Guardado Correctamente');
+
+            formulario.querySelector('button[type="submit"]').textContent = 'Crear Cita';
+
+            editando = false;
+        }
+
+        transacion.onerror = ()=>{
+            console.log('Error al Editar');
+        }  
 
     } else {
         // Nuevo Registrando
@@ -289,7 +307,7 @@ function cargarEdicion(cita) {
     citaObj.mascota = mascota;
     citaObj.propietario = propietario;
     citaObj.telefono = telefono;
-    citaObj.fecha = fecha
+    citaObj.fecha = fecha;
     citaObj.hora = hora;
     citaObj.sintomas = sintomas;
     citaObj.id = id;
@@ -333,7 +351,7 @@ function crearDB()
 
         //Creacion del Objeto o tabla
         const objectStore = db.createObjectStore('citas',{
-            keyPath: 'citas',
+            keyPath: 'id',
             autoIncrement: true
         });
         //creacion de las columnas
