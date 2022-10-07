@@ -220,12 +220,13 @@ function nuevaCita(e) {
 
         administrarCitas.editarCita( {...citaObj} );
 
+        //Creamos una variable de modo lectura y escritura para realizar operaciones en citas
         const transacion = DB.transaction(['citas'],'readwrite');
-
+        //Instanciamos
         const objectStore = transacion.objectStore('citas');
-
+        //Editamos los nuevos valores con el metodo PUT
         objectStore.put(citaObj);
-
+        //Mensaje completado
         transacion.oncomplete = () =>{
         
             ui.imprimirAlerta('Guardado Correctamente');
@@ -294,9 +295,22 @@ function reiniciarObjeto() {
 
 
 function eliminarCita(id) {
-    administrarCitas.eliminarCita(id);
+    
+    const transacion = DB.transaction(['citas'],'readwrite');
+    const objectStore = transacion.objectStore('citas');
 
-    ui.imprimirCitas()
+    objectStore.delete(id);
+
+    transacion.oncomplete = function(){
+        console.log('se elimino con Exito');
+        ui.imprimirCitas()
+    }
+
+    transacion.onerror = function(){
+        console.log('no se pudo eliminar');
+    }
+
+    
 }
 
 function cargarEdicion(cita) {
